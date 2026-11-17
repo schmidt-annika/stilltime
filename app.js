@@ -905,6 +905,7 @@ function validateBackup(payload) {
 
 function init() {
   document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.view)));
+  getElement('#view-timer').addEventListener('click', handleTimerAreaClick);
   getElement('#mainTimerButton').addEventListener('click', timerAction);
   getElement('#resetButton').addEventListener('click', resetTimer);
   getElement('#finishButton').addEventListener('click', finishTimer);
