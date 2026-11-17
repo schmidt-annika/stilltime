@@ -889,3 +889,21 @@ body {
   min-width: 44px;
   min-height: 44px;
 }
+
+body.focus-mode .topbar,
+body.focus-mode .bottom-nav {
+  display: none;
+}
+
+body.focus-mode .timer-display {
+  font-size: min(19vw, 33dvh);
+  font-weight: 250;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+body.focus-mode #resetButton,
+body.focus-mode #finishButton {
+  display: none !important;
+}
