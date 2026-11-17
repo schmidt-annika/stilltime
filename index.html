@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b101b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Stilltime" />
+  <meta name="description" content="Dein persönlicher Zeittracker." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="./icons/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Stilltime</title>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      
+      <button id="importButton" class="icon-button" type="button" title="JSON-Backup importieren" aria-label="Daten importieren">↧</button>
+      <button id="exportButton" class="icon-button" type="button" title="Daten als JSON exportieren" aria-label="Daten exportieren">↥</button>
+      <input id="importFile" class="sr-only" type="file" accept=".json,application/json" aria-label="Backup-Datei auswählen" />
+    </header>
+
+    <main>
+      <section class="view active" id="view-timer" aria-labelledby="timer-heading">
+        <h1 id="timer-heading" class="sr-only">Timer</h1>
+        <div class="timer-stage">
+
+          <div id="timerDisplay" class="timer-display" aria-live="off">00:00:00</div>
+        </div>
+        <div class="timer-controls">
+          <button id="resetButton" class="secondary-button hidden" type="button">Verwerfen</button>
+          <button id="mainTimerButton" class="primary-button timer-icon-button" type="button" aria-label="Starten" title="Starten"><svg id="playIcon" viewBox="0 0 24 24" width="25" height="25" fill="currentColor" aria-hidden="true"><path d="M8 5.2a1 1 0 0 1 1.5-.86l11 6.8a1 1 0 0 1 0 1.72l-11 6.8A1 1 0 0 1 8 18.8z"/></svg><svg id="pauseIcon" viewBox="0 0 24 24" width="25" height="25" fill="currentColor" aria-hidden="true" class="hidden"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg></button>
+          <button id="finishButton" class="secondary-button hidden" type="button">Beenden</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-calendar" aria-labelledby="calendar-heading">
+        <h1 id="calendar-heading" class="sr-only">Kalender</h1>
+        <div class="calendar-navigation"><button id="calendarPrev" class="arrow-button" aria-label="Vorherige Woche">‹</button><div id="calendarRange" class="calendar-range"></div><button id="calendarNext" class="arrow-button" aria-label="Nächste Woche">›</button></div>
+        <div id="weekGrid" class="week-grid"></div>
+        <div class="section-row"><div class="section-heading" id="selectedDateTitle">Tag</div><button class="text-button" id="addManualButton">+ Eintragen</button></div>
+        <div id="dayTimeline" class="day-timeline" aria-label="24-Stunden-Zeitachse"></div>
+      </section>
+
+      <section class="view" id="view-analysis" aria-labelledby="analysis-heading">
+        <h1 id="analysis-heading" class="sr-only">Analyse</h1>
+        <div class="filters"><label>Zeitraum<select id="periodSelect"><option value="week">Diese Woche</option><option value="lastweek">Letzte Woche</option><option value="month">Dieser Monat</option><option value="custom">Eigener Zeitraum</option></select></label><div class="analysis-label-field"><div class="field-caption">Labels</div><div id="analysisSelectedLabels" class="extra-chips" aria-label="Ausgewählte Analyse-Labels"></div><button type="button" id="analysisAddLabel" class="extra-add-button" aria-expanded="false" aria-controls="analysisLabelPicker">+ <span>Label hinzufügen</span></button><div id="analysisLabelPicker" class="extra-picker hidden"><input id="analysisLabelSearch" type="search" autocomplete="off" placeholder="Haupt- oder Zusatzlabel suchen" aria-label="Analyse-Labels suchen" /><div id="analysisLabelSuggestions" class="extra-suggestions" role="listbox" aria-label="Labelvorschläge"></div></div></div></div>
+        <div id="customDates" class="custom-dates hidden"><label>Von<input id="startDate" type="date"></label><label>Bis<input id="endDate" type="date"></label></div>
+        <div class="analysis-hero"><div class="eyebrow">ERFASSTE ZEIT</div><div id="analysisTotal" class="analysis-total">0h 00m</div><div class="analysis-context" id="analysisContext">Diese Woche</div></div>
+        <div class="chart-card"><div class="section-heading">Zeitverteilung</div><div id="barChart" class="bar-chart"></div><div id="barSelection" class="bar-selection" role="status" aria-live="polite"></div></div>
+        <div class="analysis-stats"><div><div class="eyebrow">Ø PRO TAG</div><div class="stat-value" id="dailyAverage">0h 00m</div></div><div><div class="eyebrow">ZEITBLÖCKE</div><div class="stat-value" id="blockCount">0</div></div></div>
+        <div class="section-heading">Nach Hauptlabel</div><div id="categoryBreakdown" class="breakdown"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Hauptnavigation">
+      <button class="nav-item active" data-view="timer" aria-current="page"><span class="nav-icon">◷</span><span>Timer</span></button>
+      <button class="nav-item" data-view="calendar"><span class="nav-icon">▦</span><span>Kalender</span></button>
+      <button class="nav-item" data-view="analysis"><span class="nav-icon">▥</span><span>Analyse</span></button>
+    </nav>
+  </div>
+
+  <dialog id="entryDialog" class="entry-dialog">
+    <form id="entryForm" class="entry-form">
+      <div class="dialog-head"><div><div class="eyebrow">ZEITBLOCK</div><h2 id="dialogTitle">Eintrag speichern</h2></div><button type="button" id="closeDialog" class="icon-button" aria-label="Schließen">×</button></div>
+      <div class="form-line"><label>Beginn<input id="entryStart" type="datetime-local" required /></label><label>Ende<input id="entryEnd" type="datetime-local" required /></label></div>
+      <label>Hauptlabel<select id="mainLabel" required></select></label>
+      <div id="newCategoryFields" class="hidden"><div class="form-line color-row"><label>Neues Hauptlabel<input id="newCategoryName" type="text" maxlength="36" placeholder="z. B. Sport" /></label><label>Farbe<input id="newCategoryColor" type="color" value="#86efac" /></label></div></div>
+      <div class="extra-label-field">
+        <div class="field-caption">Weitere Labels</div>
+        <div id="selectedExtras" class="extra-chips" aria-label="Ausgewählte Zusatzlabels"></div>
+        <button type="button" id="addExtraButton" class="extra-add-button" aria-label="Zusatzlabel hinzufügen" aria-expanded="false" aria-controls="extraPicker">+ <span>Label hinzufügen</span></button>
+        <div id="extraPicker" class="extra-picker hidden">
+          <input id="extraSearch" type="search" maxlength="60" autocomplete="off" placeholder="Label suchen oder erstellen" aria-label="Zusatzlabel suchen" />
+          <div id="extraSuggestions" class="extra-suggestions" role="listbox" aria-label="Verfügbare Zusatzlabels"></div>
+        </div>
+      </div>
+      <label>Notiz<textarea id="entryNote" rows="3" maxlength="2000" placeholder="Was hast du gemacht?"></textarea></label>
+      <div id="formError" class="form-error" role="alert"></div>
+      <div class="dialog-actions"><button id="deleteEntry" type="button" class="danger-button hidden">Löschen</button><button class="primary-button save-button" type="submit">Speichern <span>✓</span></button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
