@@ -773,6 +773,15 @@ function renderAll() {
   updateTimer()
 }
 
+function setFocusMode(enabled) {
+  document.body.classList.toggle('focus-mode', enabled);
+}
+
+function handleTimerAreaClick(event) {
+  if (event.target.closest('button, a, input, select, textarea')) return;
+  setFocusMode(!document.body.classList.contains('focus-mode'));
+}
+
 function showView(view) {
   document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active', x.id === `view-${view}`));
   document.querySelectorAll('.nav-item').forEach(x=> {
