@@ -53,7 +53,7 @@
         <div id="customDates" class="custom-dates hidden"><label>Von<input id="startDate" type="date"></label><label>Bis<input id="endDate" type="date"></label></div>
         <div class="analysis-hero"><div class="eyebrow">ERFASSTE ZEIT</div><div id="analysisTotal" class="analysis-total">0h 00m</div><div class="analysis-context" id="analysisContext">Diese Woche</div></div>
         <div class="chart-card"><div class="section-heading">Zeitverteilung</div><div id="barChart" class="bar-chart"></div><div id="barSelection" class="bar-selection" role="status" aria-live="polite"></div></div>
-        <div class="analysis-stats"><div><div class="eyebrow">Ø PRO TAG</div><div class="stat-value" id="dailyAverage">0h 00m</div></div><div><div class="eyebrow">ZEITBLÖCKE</div><div class="stat-value" id="blockCount">0</div></div></div>
+        <div class="analysis-stats"><div><div class="eyebrow">Ø PRO TAG</div><div class="stat-value" id="dailyAverage">0h 00m</div></div><div><div class="eyebrow">SESSIONS</div><div class="stat-value" id="blockCount">0</div></div></div>
         <div class="section-heading">Nach Hauptlabel</div><div id="categoryBreakdown" class="breakdown"></div>
       </section>
     </main>
@@ -67,7 +67,7 @@
 
   <dialog id="entryDialog" class="entry-dialog">
     <form id="entryForm" class="entry-form">
-      <div class="dialog-head"><div><div class="eyebrow">ZEITBLOCK</div><h2 id="dialogTitle">Eintrag speichern</h2></div><button type="button" id="closeDialog" class="icon-button" aria-label="Schließen">×</button></div>
+      <div class="dialog-head"><div><div class="eyebrow">SESSION</div><h2 id="dialogTitle">Eintrag speichern</h2></div><button type="button" id="closeDialog" class="icon-button" aria-label="Schließen">×</button></div>
       <div class="form-line"><label>Beginn<input id="entryStart" type="datetime-local" required /></label><label>Ende<input id="entryEnd" type="datetime-local" required /></label></div>
       <label>Hauptlabel<select id="mainLabel" required></select></label>
       <div id="newCategoryFields" class="hidden"><div class="form-line color-row"><label>Neues Hauptlabel<input id="newCategoryName" type="text" maxlength="36" placeholder="z. B. Sport" /></label><label>Farbe<input id="newCategoryColor" type="color" value="#86efac" /></label></div></div>
