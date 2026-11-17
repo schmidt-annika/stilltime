@@ -178,7 +178,7 @@ function timerAction() {
 }
 
 function resetTimer() {
-  if(!confirm('Diese laufende Zeit wirklich verwerfen?'))return;
+  if(!confirm('Willst du diese Session Zeit wirklich verwerfen?'))return;
   data.timer = {
     mode:'idle', startedAt:null, accumulated:0
   };
@@ -189,7 +189,7 @@ function resetTimer() {
 function finishTimer() {
   const ms = getElapsed();
   if(ms < 1000) {
-    toast('Mindestens eine Sekunde erfassen');
+    toast('gib mir eine Sekunde ;)');
     return
   }
   const end = Date.now();
@@ -348,7 +348,7 @@ function saveEntry(event) {
   event.preventDefault();
   const start = new Date(getElement('#entryStart').value).getTime(), end = new Date(getElement('#entryEnd').value).getTime();
   if(!Number.isFinite(start) || !Number.isFinite(end) || start >= end) {
-    getElement('#formError').textContent = 'Das Ende muss nach dem Beginn liegen.';
+    getElement('#formError').textContent = 'Zeitparadoxon! (Das Ende muss nach dem Beginn liegen.)';
     return
   }
   const conflicting = data.blocks.find(b=>b.id !== editingId && b.start < end && start < b.end);
@@ -388,11 +388,11 @@ function saveEntry(event) {
   cancelEntry = null;
   getElement('#entryDialog').close();
   renderAll();
-  toast('Zeitblock gespeichert')
+  toast('Session gespeichert')
 }
 
 function deleteEntry() {
-  if(!editingId || !confirm('Diesen Zeitblock löschen?'))return;
+  if(!editingId || !confirm('Dies Session löschen?'))return;
   data.blocks = data.blocks.filter(b=>b.id !== editingId);
   if(!persist())return;
   cancelEntry = null;
@@ -840,14 +840,14 @@ function validateBackup(payload) {
       !Number.isFinite(b.start) || !Number.isFinite(b.end) ||
       b.start >= b.end || b.start < 0 || b.end > 8640000000000000
     ) {
-      throw Error('Ungültiger Zeitblock im Backup.');
+      throw Error('Ungültige Session im Backup.');
     }
     if (seenBlocks.has(b.id)) {
-      throw Error('Ein Zeitblock ist mehrfach vorhanden.');
+      throw Error('Eine Session ist mehrfach vorhanden.');
     }
     seenBlocks.add(b.id);
     if (typeof b.categoryId !== 'string' || !seenCategories.has(b.categoryId)) {
-      throw Error('Ein Zeitblock verweist auf ein unbekanntes Hauptlabel.');
+      throw Error('Eine Session verweist auf ein unbekanntes Hauptlabel.');
     }
     if (!Array.isArray(b.extras) || b.extras.length > 200 ||
         !b.extras.every(x => typeof x === 'string' && x.length <= 100)) {
