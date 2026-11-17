@@ -30,7 +30,7 @@ I chose this structure because I wanted to categorize time in different ways wit
 
 The calendar displays sessions on a 24-hour timeline, positioned according to their actual start and end times and colored by their main labels.
 
-This makes it possible to see not just how much time was spent working, but also *when* and *on what*. Sessions can be added manually or edited afterwards. Overlapping time blocks are not allowed (this is not Harry Pottet PoA ;).
+This makes it possible to see not just how much time was spent working, but also *when* and *on what*. Sessions can be added manually or edited afterwards. Overlapping time blocks are not allowed (this is not Harry Potter PoA ;).
 
 ### Analytics
 
