@@ -907,3 +907,26 @@ body.focus-mode #resetButton,
 body.focus-mode #finishButton {
   display: none !important;
 }
+
+/* Focus mode uses the whole viewport, not the narrow app shell. */
+body.focus-mode { overflow: hidden; }
+body.focus-mode #view-timer.active {
+  position: fixed;
+  inset: 0;
+  min-height: 0;
+  animation: none;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: center;
+  align-items: center;
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+}
+body.focus-mode .timer-stage { grid-row: 2; min-height: 0; }
+body.focus-mode .timer-controls { grid-row: 3; align-self: start; margin: 8px 0 0; }
+body.focus-mode .timer-display { font-size: min(17vw, 30dvh); }
+
+#analysisGroups { display: grid; gap: 8px; width: 100%; }
+.analysis-group { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; min-width: 0; }
+.group-header { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+.group-remove { border: 0; background: transparent; color: var(--muted); font-size: 20px; }
+.group-operator { color: var(--muted); font-size: 11px; align-self: center; text-align: center; }
