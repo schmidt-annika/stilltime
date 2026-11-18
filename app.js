@@ -532,96 +532,142 @@ function renderCalendar() {
     lane.append(entry);
   } timeline.append(rail, lane);
 }
-// Empty selection means all blocks. Multiple selections are combined with OR;
-// every matching block is counted once, regardless of how many labels match.
+// Each group is a conjunction; groups are combined by disjunction.
+let analysisGroups = [];
 
-// Analytics and label filters
-let selectedAnalysisLabels = [];
 function analysisOptions() {
-  return [...data.categories.map(c=>( {
-    key:`cat:${c.id}`, name:c.name, type:'Hauptlabel', color:c.color
-  })), ...knownExtras().map(name=>( {
-    key:`tag:${name}`, name, type:'Zusatzlabel'
-  }))];
+  return [
+    ...data.categories.map(c => ({ key: `cat:${c.id}`, name: c.name, type: 'Hauptlabel', color: c.color })),
+    ...knownExtras().map(name => ({ key: `tag:${name}`, name, type: 'Zusatzlabel' }))
+  ];
 }
 
-function toggleAnalysisPicker(open) {
-  getElement('#analysisLabelPicker').classList.toggle('hidden', !open);
-  getElement('#analysisAddLabel').setAttribute('aria-expanded', String(open));
-  if(open) {
-    getElement('#analysisLabelSearch').value = '';
-    renderAnalysisSuggestions();
-    getElement('#analysisLabelSearch').focus()
-  }
+function analysisButton(text, action, className = 'extra-add-button') {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = className;
+  button.textContent = text;
+  button.addEventListener('click', action);
+  return button;
 }
 
-function renderAnalysisChips() {
-  const root = getElement('#analysisSelectedLabels');
+function refreshAnalysisFilters() {
+  renderAnalysisGroups();
+  renderAnalysis();
+}
+
+function renderAnalysisGroups() {
+  const root = getElement('#analysisGroups');
   root.replaceChildren();
   const options = analysisOptions();
-  for(const key of selectedAnalysisLabels) {
-    const opt = options.find(x=>x.key === key);
-    if(!opt)continue;
-    const chip = document.createElement('span');
-    chip.className = 'extra-chip';
-    if(opt.color) {
-      const dot = document.createElement('span');
-      dot.className = 'breakdown-color';
-      dot.style.background = opt.color;
-      chip.append(dot)
-    } const label = document.createElement('span');
-    label.textContent = opt.name;
-    chip.append(label);
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.textContent = '×';
-    remove.setAttribute('aria-label', `${opt.name} aus Analyse entfernen`);
-    remove.addEventListener('click', ()=> {
-      selectedAnalysisLabels = selectedAnalysisLabels.filter(x=>x !== key);renderAnalysisChips();renderAnalysisSuggestions();renderAnalysis()
-    });
-    chip.append(remove);
-    root.append(chip);
-  } if(!selectedAnalysisLabels.length) {
+  if (!analysisGroups.length) {
     const all = document.createElement('span');
     all.className = 'analysis-all-label';
     all.textContent = 'Alle Labels';
-    root.append(all)
+    root.append(all);
   }
-}
-
-function renderAnalysisSuggestions() {
-  const root = getElement('#analysisLabelSuggestions');
-  root.replaceChildren();
-  const query = getElement('#analysisLabelSearch').value.trim().toLocaleLowerCase('de');
-  for(const opt of analysisOptions().filter(x=>!selectedAnalysisLabels.includes(x.key) && `${x.name} ${x.type}`.toLocaleLowerCase('de').includes(query))) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'extra-suggestion';
-    btn.setAttribute('role', 'option');
-    btn.textContent = `${opt.type === 'Hauptlabel' ? '●':'#'} ${opt.name}`;
-    if(opt.color)btn.style.color = opt.color;
-    btn.addEventListener('click', ()=> {
-      selectedAnalysisLabels.push(opt.key);renderAnalysisChips();toggleAnalysisPicker(false);renderAnalysis()
+  analysisGroups.forEach((group, index) => {
+    if (index > 0) {
+      const or = document.createElement('div');
+      or.className = 'group-operator';
+      or.textContent = 'OR';
+      root.append(or);
+    }
+    const panel = document.createElement('div');
+    panel.className = 'analysis-group';
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    header.textContent = `Gruppe ${index + 1}`;
+    const removeGroup = analysisButton('×', () => {
+      analysisGroups = analysisGroups.filter(g => g !== group);
+      refreshAnalysisFilters();
+    }, 'group-remove');
+    removeGroup.setAttribute('aria-label', `Gruppe ${index + 1} entfernen`);
+    header.append(removeGroup);
+    panel.append(header);
+    const chips = document.createElement('div');
+    chips.className = 'extra-chips';
+    group.forEach((key, i) => {
+      const opt = options.find(o => o.key === key);
+      if (!opt) return;
+      if (i > 0) {
+        const and = document.createElement('span');
+        and.className = 'group-operator';
+        and.textContent = 'AND';
+        chips.append(and);
+      }
+      const chip = document.createElement('span');
+      chip.className = 'extra-chip';
+      if (opt.color) {
+        const dot = document.createElement('span');
+        dot.className = 'breakdown-color';
+        dot.style.background = opt.color;
+        chip.append(dot);
+      }
+      const label = document.createElement('span');
+      label.textContent = opt.name;
+      const remove = analysisButton('×', () => {
+        group.splice(group.indexOf(key), 1);
+        refreshAnalysisFilters();
+      }, '');
+      remove.setAttribute('aria-label', `${opt.name} entfernen`);
+      chip.append(label, remove);
+      chips.append(chip);
     });
-    root.append(btn);
-  } if(!root.childElementCount) {
-    const empty = document.createElement('div');
-    empty.className = 'extra-empty';
-    empty.textContent = 'Keine weiteren Labels';
-    root.append(empty)
-  }
+    panel.append(chips);
+    const picker = document.createElement('div');
+    picker.className = 'extra-picker hidden';
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.placeholder = 'Haupt- oder Zusatzlabel suchen';
+    search.setAttribute('aria-label', search.placeholder);
+    const suggestions = document.createElement('div');
+    suggestions.className = 'extra-suggestions';
+    const renderSuggestions = () => {
+      suggestions.replaceChildren();
+      const query = search.value.trim().toLocaleLowerCase('de');
+      for (const opt of options.filter(o => !group.includes(o.key) &&
+        `${o.name} ${o.type}`.toLocaleLowerCase('de').includes(query))) {
+        const button = analysisButton(`${opt.color ? '●' : '#'} ${opt.name}`, () => {
+          group.push(opt.key);
+          refreshAnalysisFilters();
+        }, 'extra-suggestion');
+        if (opt.color) button.style.color = opt.color;
+        suggestions.append(button);
+      }
+      if (!suggestions.childElementCount) suggestions.textContent = 'Keine weiteren Labels';
+    };
+    const add = analysisButton('+ Label', () => {
+      const open = picker.classList.toggle('hidden') === false;
+      add.setAttribute('aria-expanded', String(open));
+      if (open) { search.value = ''; renderSuggestions(); search.focus(); }
+    });
+    add.setAttribute('aria-expanded', 'false');
+    search.addEventListener('input', renderSuggestions);
+    search.addEventListener('keydown', event => {
+      if (event.key === 'Enter') { event.preventDefault(); suggestions.querySelector('button')?.click(); }
+      if (event.key === 'Escape') { picker.classList.add('hidden'); add.setAttribute('aria-expanded', 'false'); add.focus(); }
+    });
+    picker.append(search, suggestions);
+    panel.append(add, picker);
+    root.append(panel);
+  });
 }
 
 function populateAnalysisLabels() {
-  const valid = new Set(analysisOptions().map(x=>x.key));
-  selectedAnalysisLabels = selectedAnalysisLabels.filter(x=>valid.has(x));
-  renderAnalysisChips();
-  if(!getElement('#analysisLabelPicker').classList.contains('hidden'))renderAnalysisSuggestions();
+  const valid = new Set(analysisOptions().map(o => o.key));
+  analysisGroups = analysisGroups.map(group => group.filter(key => valid.has(key)));
+  renderAnalysisGroups();
+}
+
+function matchesLabel(block, key) {
+  return key.startsWith('cat:') ? block.categoryId === key.slice(4) :
+    (block.extras || []).some(label => label.toLocaleLowerCase('de') === key.slice(4).toLocaleLowerCase('de'));
 }
 
 function matchesAnalysisLabels(block) {
-  if(!selectedAnalysisLabels.length)return true;
-  return selectedAnalysisLabels.some(key=>key.startsWith('cat:') ? block.categoryId === key.slice(4) :(block.extras || []).some(x=>x.toLocaleLowerCase('de') === key.slice(4).toLocaleLowerCase('de')));
+  const groups = analysisGroups.filter(group => group.length > 0);
+  return groups.length === 0 || groups.some(group => group.every(key => matchesLabel(block, key)));
 }
 
 function analysisRange() {
@@ -783,6 +829,7 @@ function handleTimerAreaClick(event) {
 }
 
 function showView(view) {
+  if (view !== 'timer') setFocusMode(false);
   document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active', x.id === `view-${view}`));
   document.querySelectorAll('.nav-item').forEach(x=> {
     const active = x.dataset.view === view;x.classList.toggle('active', active);if(active)x.setAttribute('aria-current', 'page');else x.removeAttribute('aria-current')
@@ -889,7 +936,7 @@ function validateBackup(payload) {
     data = imported;
     editingId = null;
     selectedExtraLabels = [];
-    selectedAnalysisLabels = [];
+    analysisGroups = [];
     selectedDate = startOfDay(new Date());
     calendarMonday = startOfWeek(selectedDate);
     if(getElement('#entryDialog').open) {
@@ -925,15 +972,13 @@ function init() {
     })
   });
   getElement('#periodSelect').addEventListener('change', renderAnalysis);
-  getElement('#analysisAddLabel').addEventListener('click', ()=>toggleAnalysisPicker(getElement('#analysisLabelPicker').classList.contains('hidden')));
-  getElement('#analysisLabelSearch').addEventListener('input', renderAnalysisSuggestions);
-  getElement('#analysisLabelSearch').addEventListener('keydown', e=> {
-    if(e.key === 'Escape') {
-      e.preventDefault();toggleAnalysisPicker(false)
-    }
-    if(e.key === 'Enter') {
-      e.preventDefault();const first = getElement('#analysisLabelSuggestions button');if(first)first.click()
-    }
+  getElement('#analysisAddGroup').addEventListener('click', () => {
+    analysisGroups.push([]);
+    refreshAnalysisFilters();
+    getElement('#analysisGroups').lastElementChild.querySelector('.extra-add-button').click();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !getElement('#entryDialog').open) setFocusMode(false);
   });
   getElement('#startDate').addEventListener('change', renderAnalysis);
   getElement('#endDate').addEventListener('change', renderAnalysis);
